@@ -154,3 +154,6 @@ data
 !examples/data
 workspace
 debug.sh
+examples/data/test_message_wo_image_multi.jsonl
+examples/data/test_message_multi.jsonl
+examples/data/test_message_wo_image.jsonl

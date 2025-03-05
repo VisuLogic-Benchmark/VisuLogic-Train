@@ -157,5 +157,3 @@ debug.sh
 examples/data/test_message_wo_image_multi.jsonl
 examples/data/test_message_multi.jsonl
 examples/data/test_message_wo_image.jsonl
-examples/data/mathlv345_8k_chatml.json
-examples/data/test_message.jsonl

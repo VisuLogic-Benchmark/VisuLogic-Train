@@ -14,7 +14,7 @@ app = Flask(__name__)
 problem_to_answer = {}
 
 
-def get_response_from_query_1(q: str):
+def get_response_from_query(q: str):
     ends_of_sentence = ["<|im_end|>", "<｜end▁of▁sentence｜>", "<|endoftext|>"]
     pos = re.search(response_prefix, q)
     if pos is None:
@@ -23,23 +23,6 @@ def get_response_from_query_1(q: str):
     for e in ends_of_sentence:
         response = response.replace(e, "")
     return response.strip()
-
-def get_response_from_query_2(q: str):
-    try:
-        print(f"query的类型是{type(q)}")
-        print(q)
-        if isinstance(q,list):
-            format_query=q
-        else:
-            format_query = json.loads(q)
-        for item in format_query:
-            if item["role"] == "assistant":
-                return item["content"]
-        print("解析失败!!")
-        return None
-    except Exception as e:
-        print(f"解析失败!!，因为{e}")
-        return None
 
 
 def verify_format(content):
@@ -88,12 +71,8 @@ def verify_option(input_queue, output_queue):
         if len(sol) != 0:
             # We require the answer to be provided in correct latex (no malformed operators)
             # Reward 1 if the content is the same as the ground truth, 0 otherwise
-           #print(f"content的类型是{type(content)}")
-           #print(f"当前1的字符串是{content}")
            parse_answer = extract_answer(content)
-           #print(f"当前2的字符串是{parse_answer}")
            parse_answer = find_first_uppercase(parse_answer)
-           #print(f"需要对比的分别是:{parse_answer}, {sol[0]}")
            reward=1.0 if parse_answer==sol[0] else 0.0
         else:
             # If the gold solution is not parseable, we reward 1 to skip this example
@@ -119,12 +98,8 @@ def get_reward():
             print(f"problem not exists: {problem}")
             problem = find_similar_problem(problem)
         answer = problem_to_answer[problem]
-        response = remove_short_string_part(q,problem)
-        response = get_response_from_query_1(response)
-        ends_of_sentence = ["<|im_end|>", "<｜end▁of▁sentence｜>", "<|endoftext|>"]
-        for e in ends_of_sentence:
-            response = response.replace(e, "")
-        #response = get_response_from_query_2(response) or response
+        #response = remove_short_string_part(q,problem)
+        response = get_response_from_query(q) or q
         if response is None:
             return jsonify({"error": f"response not found from {q}"}), 400
         format_reward = float(verify_format(response))

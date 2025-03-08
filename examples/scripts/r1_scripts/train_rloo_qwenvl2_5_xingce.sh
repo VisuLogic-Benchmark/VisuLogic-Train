@@ -1,7 +1,8 @@
 export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/dataset/xingce_v1/vlm_xingce_dataset/train.jsonl"
 #export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/examples/data/test_message_wo_image_multi.jsonl"
-MODEL_CPK_NAME="qwenvl25_3B_ins_rloo_xingcev1"
-PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/hf_home/Qwen2.5-VL-3B-Instruct"
+MODEL_CPK_NAME="qwenvl25_7B_ins_rloo_xingcev1_new"
+#PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/hf_home/Qwen2.5-VL-3B-Instruct"
+PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/hf_home/Qwen2.5-VL-7B-Instruct"
 SAVE_PATH="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace"
 mkdir -p "${SAVE_PATH}/${MODEL_CPK_NAME}"
 mkdir -p "${SAVE_PATH}/${MODEL_CPK_NAME}/logs"
@@ -56,6 +57,7 @@ ray job submit --address="http://127.0.0.1:8265" \
    --save_hf_ckpt \
    --use_tensorboard $SAVE_PATH/$MODEL_CPK_NAME/logs \
    --max_ckpt_num 10 \
+   --train_vlm \
    2>&1 | tee ${LOG_PATH}
 
 # also supports --advantage_estimator rloo

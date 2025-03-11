@@ -1,29 +1,27 @@
-export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/dataset/xingce_v1/vlm_xingce_dataset/train_no_sys.jsonl"
+NODE_RANK=$1
+export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/dataset/xingce_v1/vlm_xingce_dataset/all_data_easy_sys.jsonl"
 #export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/examples/data/test_message_wo_image_multi.jsonl"
-#MODEL_CPK_NAME="qwenvl25_7B_rej_sample_ins_rloo_xingcev1_lr1e-5"
-MODEL_CPK_NAME="qwenvl25_7B_ins_rloo_xingcev1_lr1e-6_no_sys"
+#MODEL_CPK_NAME="qwenvl25_7B_ins_rloo_xingcev1_lr1e-6_easy_sys"
 PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/hf_home/Qwen2.5-VL-7B-Instruct"
 #PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/qwen25_7b_sampled_sft_1k_v1"
-SAVE_PATH="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace"
-mkdir -p "${SAVE_PATH}/${MODEL_CPK_NAME}"
-mkdir -p "${SAVE_PATH}/${MODEL_CPK_NAME}/logs"
+SAVE_PATH="log"
+mkdir -p "ckpt"
 T=`date +%Y%m%d_%H%M%S`
-LOG_PATH="${SAVE_PATH}/${MODEL_CPK_NAME}/logs/${MODEL_CPK_NAME}_${T}.log"
-ray stop
-python -m openrlhf.models.remote_rm.option_verifier --dataset $DATASET --input_key message --prompt-template chatml > "${SAVE_PATH}/${MODEL_CPK_NAME}/logs/remote_rm_${T}.log" 2>&1 &
 childpid=$!
 
-ray start --head --node-ip-address 0.0.0.0 --num-gpus 8 --temp-dir ~/.cache/ray
 
-ray job submit --address="http://127.0.0.1:8265" \
+export RAY_ADDRESS='http://127.0.0.1:8265'
+python -m openrlhf.models.remote_rm.option_verifier --dataset $DATASET --input_key message --prompt-template chatml > "log/remote_rm_node$NODE_RANK_${T}.log" 2>&1 &
+if [ "$NODE_RANK" = "0" ]; then
+ray job submit \
    --runtime-env-json='{"working_dir": "/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1"}' \
    -- python3 -m openrlhf.cli.train_ppo_ray \
-   --ref_num_nodes 1 \
+   --ref_num_nodes 2 \
    --ref_num_gpus_per_node 8 \
    --remote_rm_url http://127.0.0.1:5000/get_reward \
-   --actor_num_nodes 1 \
+   --actor_num_nodes 2 \
    --actor_num_gpus_per_node 8 \
-   --vllm_num_engines 8 \
+   --vllm_num_engines 16 \
    --vllm_tensor_parallel_size 1 \
    --colocate_all_models \
    --vllm_enable_sleep \
@@ -31,7 +29,7 @@ ray job submit --address="http://127.0.0.1:8265" \
    --vllm_sync_backend gloo \
    --enable_prefix_caching \
    --pretrain $PRETRAIN_MODEL \
-   --save_path $SAVE_PATH/$MODEL_CPK_NAME \
+   --save_path ckpt/ \
    --micro_train_batch_size 2 \
    --train_batch_size 128 \
    --micro_rollout_batch_size 4 \
@@ -54,12 +52,10 @@ ray job submit --address="http://127.0.0.1:8265" \
    --input_key message \
    --gradient_checkpointing \
    --save_steps 10 \
-   --ckpt_path $SAVE_PATH/$MODEL_CPK_NAME/ckpt \
+   --ckpt_path ckpt/ \
    --save_hf_ckpt \
-   --use_tensorboard $SAVE_PATH/$MODEL_CPK_NAME/logs \
+   --use_tensorboard log/ \
    --max_ckpt_num 15 \
-   --train_vlm \
-   2>&1 | tee ${LOG_PATH}
-
+   --train_vlm 
+fi
 # also supports --advantage_estimator rloo
-ray stop

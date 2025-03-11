@@ -32,6 +32,7 @@ def verify_format(content):
     - Must contain exactly one pair of <think>...</think> and <answer>...</answer> tags
     - No extra characters allowed between </think> and <answer> tags
     """
+    content = content.strip()
     think_count = content.count("<think>")
     answer_count = content.count("<answer>")
     return bool(re.match(format_pattern, content, re.DOTALL)) and think_count == 1 and answer_count == 1
@@ -142,7 +143,8 @@ if __name__ == "__main__":
         else:
             raise ValueError(f"Unsupported file format for dataset: {dataset_path}")
 
-    format_pattern = r"^<think>(?:(?!</think>).)*</think><answer>(?:(?!</answer>).)*</answer>\Z"
+    #format_pattern = r"^<think>(?:(?!</think>).)*</think><answer>(?:(?!</answer>).)*</answer>\Z"
+    format_pattern =  r"^<think>(?:(?!</think>).)*</think>.*<answer>(?:(?!</answer>).)*</answer>\Z"
 
     if args.prompt_template=="chatml":
         problem_pattern = r"<\|im_start\|>user\n(.*?)<\|im_end\|>"

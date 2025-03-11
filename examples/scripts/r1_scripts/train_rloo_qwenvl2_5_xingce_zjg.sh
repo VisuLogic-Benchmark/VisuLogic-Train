@@ -1,10 +1,9 @@
-export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/dataset/xingce_v1/vlm_xingce_dataset/train_no_sys.jsonl"
+export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/dataset/xingce_v1/vlm_xingce_dataset/train.jsonl"
 #export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/examples/data/test_message_wo_image_multi.jsonl"
-#MODEL_CPK_NAME="qwenvl25_7B_rej_sample_ins_rloo_xingcev1_lr1e-5"
-MODEL_CPK_NAME="qwenvl25_7B_ins_rloo_xingcev1_lr1e-6_no_sys"
-PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/hf_home/Qwen2.5-VL-7B-Instruct"
-#PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/qwen25_7b_sampled_sft_1k_v1"
-SAVE_PATH="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace"
+MODEL_CPK_NAME="qwenvl25_7B_ins_rloo_xingcev1_lr1e-5"
+#PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/hf_home/Qwen2.5-VL-3B-Instruct"
+PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/qwen25_7b_sampled_sft_1k_v1"
+SAVE_PATH="/mnt/afs/zhujinguo/workspace_zjg/vlm-r1/workspace_wjh"
 mkdir -p "${SAVE_PATH}/${MODEL_CPK_NAME}"
 mkdir -p "${SAVE_PATH}/${MODEL_CPK_NAME}/logs"
 T=`date +%Y%m%d_%H%M%S`
@@ -27,14 +26,14 @@ ray job submit --address="http://127.0.0.1:8265" \
    --vllm_tensor_parallel_size 1 \
    --colocate_all_models \
    --vllm_enable_sleep \
-   --vllm_gpu_memory_utilization 0.6 \
+   --vllm_gpu_memory_utilization 0.7 \
    --vllm_sync_backend gloo \
    --enable_prefix_caching \
    --pretrain $PRETRAIN_MODEL \
    --save_path $SAVE_PATH/$MODEL_CPK_NAME \
-   --micro_train_batch_size 2 \
+   --micro_train_batch_size 1 \
    --train_batch_size 128 \
-   --micro_rollout_batch_size 4 \
+   --micro_rollout_batch_size 2 \
    --rollout_batch_size 256 \
    --temperature 1 \
    --n_samples_per_prompt 16 \

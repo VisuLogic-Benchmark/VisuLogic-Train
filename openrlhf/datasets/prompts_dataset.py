@@ -3,6 +3,11 @@ from tqdm import tqdm
 
 
 def preprocess_data(data, input_template=None, input_key="input", apply_chat_template=None) -> str:
+    # if input_key=="internvl":
+    #     assert "conversations" in data
+    #     assert "image_urls" in data
+    #     #print("data变量是",data)
+    #     return data
     if apply_chat_template:
         chat = data[input_key]
         if isinstance(chat, str):

@@ -5,12 +5,14 @@ import torch.distributed as dist
 import torch.nn as nn
 from peft import LoraConfig, TaskType, get_peft_model
 from peft.tuners.lora import LoraLayer
-from transformers import BitsAndBytesConfig, AutoConfig, AutoTokenizer
+from transformers import BitsAndBytesConfig, AutoConfig, AutoTokenizer,AutoModel
 from transformers.integrations.deepspeed import HfDeepSpeedConfig
 
 from .ring_attn_utils import convert_ring_attn_params
 from .utils import log_probs_from_logits, reset_position_ids
 from ..utils.utils import get_generation_cls
+
+from openrlhf.internvl import InternVLChatModel
 
 IMG_CONTEXT_TOKEN = "<IMG_CONTEXT>"
 
@@ -73,20 +75,34 @@ class Actor(nn.Module):
                 nf4_config = None
 
             #There is no AutoModelForConditionalGeneration in transformers. We manually implement it.
-            config = AutoConfig.from_pretrained(pretrain_or_model)
-            model_cls = get_generation_cls(config)
-            self.model = model_cls.from_pretrained(
-                pretrain_or_model,
-                trust_remote_code=True,
-                attn_implementation=attn_implementation,
-                quantization_config=nf4_config,
-                torch_dtype=torch.bfloat16 if bf16 else "auto",
-                device_map=device_map,
-            )
+            config = AutoConfig.from_pretrained(pretrain_or_model,trust_remote_code=True)
             if "internvl" in config.model_type:
                 self.is_internvl = True
+                #self.model = AutoModel.from_pretrained(
+                self.model = InternVLChatModel.from_pretrained(
+                    pretrain_or_model,
+                    trust_remote_code=True,
+                    attn_implementation=attn_implementation,
+                    quantization_config=nf4_config,
+                    torch_dtype=torch.bfloat16 if bf16 else "auto",
+                    device_map=device_map,
+                )
                 tokenizer = AutoTokenizer.from_pretrained(pretrain_or_model, trust_remote_code=True)
+                tokenizer.padding_side = "left"
+                # tokenizer.eos_token = "<|im_end|>"
+                # tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("<|im_end|>")
+                # print("第一处tokenizer.eos_token_id",tokenizer.eos_token_id)
                 self.model.img_context_token_id = tokenizer.convert_tokens_to_ids(IMG_CONTEXT_TOKEN)
+            else:
+                model_cls = get_generation_cls(config)
+                self.model = model_cls.from_pretrained(
+                    pretrain_or_model,
+                    trust_remote_code=True,
+                    attn_implementation=attn_implementation,
+                    quantization_config=nf4_config,
+                    torch_dtype=torch.bfloat16 if bf16 else "auto",
+                    device_map=device_map,
+                )
 
             # LoRA
             if lora_rank > 0:
@@ -223,11 +239,11 @@ class Actor(nn.Module):
             attention_mask = None
         if self.is_internvl:
             output = self.model(
-                pixel_values=pixel_values,
+                pixel_values=visual_inputs["pixel_values"],
                 input_ids=sequences,
                 attention_mask=attention_mask,
                 position_ids=position_ids,
-                image_flags=image_flags,
+                image_flags=visual_inputs["image_flags"],
             )
         output = self.model(sequences, attention_mask=attention_mask, position_ids=position_ids, **visual_inputs)
         # https://github.com/OpenRLHF/OpenRLHF/pull/634

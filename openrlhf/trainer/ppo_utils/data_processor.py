@@ -5,12 +5,17 @@ from typing import List, Optional, Union, Dict
 
 import torch
 from qwen_vl_utils import process_vision_info
-from transformers import Qwen2VLProcessor
+from transformers import Qwen2VLProcessor,AutoTokenizer
 from transformers.processing_utils import ProcessorMixin
 try:
     from transformers import Qwen2_5_VLProcessor
 except Exception as e:
     print("Qocal Qwen2_5_VLProcessor not found")
+
+from vllm.multimodal.utils import MediaConnector
+
+
+internvl_path = '/mnt/afs/wangjiahao/workspace/hf_home/InternVL2_5-4B'
 
 class BaseDataProcessor(ABC):
     def __init__(self, processor: ProcessorMixin):
@@ -216,7 +221,72 @@ class Qwen2VLDataProcessor(BaseDataProcessor):
         return image_inputs
 
 
+class InternVLDataProcessor(BaseDataProcessor):
+    def __init__(self, processor: ProcessorMixin):
+        super().__init__(processor)
+
+        self.tknz = AutoTokenizer.from_pretrained(internvl_path, trust_remote_code=True, use_fast=False)
+        self.tknz.padding_side = "left"
+        if self.tknz.__class__.__name__ == "InternLM2Tokenizer":
+
+            def eos_token_id_patch(self):
+                return self.super().eos_token_id
+
+            self.tknz.__class__.eos_token_id = property(eos_token_id_patch)
+        self.tknz.eos_token = "<|im_end|>"
+        self.tknz.eos_token_id = self.tknz.convert_tokens_to_ids("<|im_end|>")
+        #print("第二处padding side:",self.tknz.eos_token_id)
+        self.connector = MediaConnector(allowed_local_media_path="/")
+        self.internvl = True
+    def __call__(
+        self,
+    ) -> Dict:
+        pass
+    
+    def _format_messages(self, messages) -> List[Dict]:
+        if isinstance(messages, str):
+            return json.loads(messages)
+        else:
+            raise ValueError(f"Invalid messages format, must be a str, but {messages}")
+
+    def apply_chat_template(
+        self,
+        messages: Union[Dict, List[str], str],
+        tokenize: bool = False,
+        add_generation_prompt: bool = True,
+    ) -> List[str]:
+        messages = self._format_messages(messages)
+        
+        return self.tknz.apply_chat_template(
+            messages["conversations"], tokenize=tokenize, add_generation_prompt=add_generation_prompt
+        )
+
+    def get_images_from_messages(self,messages):
+        messages = self._format_messages(messages)
+
+        return [self.connector.fetch_image(image_url) for image_url in messages["image_urls"]]
+
+    def _get_images_from_messages(self):
+        pass
+
+    def make_input_batch(self, inputs: List[Dict]) -> Dict:
+        # each element has no batch dimension
+        batch = {k: None for k in inputs[0].keys()}
+        for k in batch.keys():
+            if k in ["input_ids", "attention_mask"]:
+                batch[k] = torch.stack([inp[k] for inp in inputs], dim=0)
+            elif k in ["pixel_values", "image_grid_thw"]:
+                # qwen2vl concat all patches of all images in a batch in the first dimension
+                batch[k] = torch.cat([inp[k] for inp in inputs], dim=0)
+        return batch
+
+    def split_input_batch(self) -> List[Dict]:
+        pass
+        
+
+
 DATA_PROCESSOR_MAP = {
     Qwen2VLProcessor: Qwen2VLDataProcessor,
-    Qwen2_5_VLProcessor: Qwen2VLDataProcessor,   
+    Qwen2_5_VLProcessor: Qwen2VLDataProcessor,
+    "InternVLProcessor" : InternVLDataProcessor
 }

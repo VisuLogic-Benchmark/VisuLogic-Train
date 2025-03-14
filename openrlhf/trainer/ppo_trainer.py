@@ -109,7 +109,12 @@ class PPOTrainer(ABC):
         if self.args.train_vlm and processor is not None:
             self.data_processor = DATA_PROCESSOR_MAP[type(processor)](processor)
             self.tokenizer = self.data_processor.tokenizer
-
+        elif self.args.input_key=="internvl":
+            self.data_processor = DATA_PROCESSOR_MAP["InternVLProcessor"](processor)
+            self.tokenizer = self.data_processor.tknz
+            # self.tokenizer.eos_token = "<|im_end|>"
+            # self.tokenizer.eos_token_id = self.tokenizer.convert_tokens_to_ids("<|im_end|>")
+            # print("第五处padding side:",self.tokenizer.eos_token_id)
         self.generate_kwargs = generate_kwargs
         self.dataloader_pin_memory = dataloader_pin_memory
         self.max_norm = max_norm
@@ -365,7 +370,10 @@ class PPOTrainer(ABC):
             packed_seq_lens = None
             attention_mask = experience.attention_mask
             visual_inputs = experience.visual_inputs
-
+        if hasattr(self.actor,"is_internvl"):
+            visual_inputs["image_flags"] = torch.tensor([1] * visual_inputs["pixel_values"].size(0), dtype=torch.long, device=sequences.device)
+            #del visual_inputs["image_num_patches"] 
+            visual_inputs.pop("image_num_patches")
         # actor loss
         action_log_probs, output = self.actor(
             sequences,

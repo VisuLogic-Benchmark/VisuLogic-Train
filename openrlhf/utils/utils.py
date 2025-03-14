@@ -21,7 +21,17 @@ def get_vl_processor(pretrain, model, padding_side="left", strategy=None, use_fa
 
 def get_tokenizer(pretrain, model, padding_side="left", strategy=None, use_fast=True):
     tokenizer = AutoTokenizer.from_pretrained(pretrain, trust_remote_code=True, use_fast=use_fast)
+    if tokenizer.__class__.__name__ == "InternLM2Tokenizer":
+
+        def eos_token_id_patch(self):
+            return self.super().eos_token_id
+
+        tokenizer.__class__.eos_token_id = property(eos_token_id_patch)
     tokenizer.padding_side = padding_side
+    tokenizer.padding_side = "left"
+    # tokenizer.eos_token = "<|im_end|>"
+    # tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("<|im_end|>")
+    # print("第三处tokenizer.eos_token_id:",tokenizer.eos_token_id)
     # NOTE: When enable vLLM, do not resize_token_embeddings, or the vocab size will mismatch with vLLM.
     # https://github.com/facebookresearch/llama-recipes/pull/196
     if tokenizer.pad_token is None:

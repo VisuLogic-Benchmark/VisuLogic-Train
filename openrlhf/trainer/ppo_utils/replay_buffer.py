@@ -61,13 +61,22 @@ def split_experience_batch(experience: Experience, data_processor: Optional[Base
         assert batch_size == len(vals)
         for i, v in enumerate(vals):
             batch_kwargs[i][key] = v
-    if data_processor is not None:
+    if data_processor is not None and not(hasattr(data_processor,"internvl")):
         visual_inputs_batch = experience.visual_inputs
         visual_inputs_batch['input_ids'] = experience.sequences
         visual_inputs_chunks = data_processor.split_input_batch(visual_inputs_batch)
         for i, visual_inputs in enumerate(visual_inputs_chunks):
             visual_inputs.pop('input_ids')
             batch_kwargs[i]["visual_inputs"] = visual_inputs
+    elif hasattr(data_processor,"internvl"):
+        visual_inputs_batch = experience.visual_inputs
+        start = 0
+        end = 0
+        for i in range(batch_size):
+            end = start + visual_inputs_batch[i]["image_num_patches"].sum().item()
+            batch_kwargs[i]["visual_inputs"] = {}
+            batch_kwargs[i]["visual_inputs"]["pixel_values"] = visual_inputs_batch["pixel_values"][start:end]
+            start = end
     else:
         for i in range(batch_size):
             batch_kwargs[i]["visual_inputs"] = None

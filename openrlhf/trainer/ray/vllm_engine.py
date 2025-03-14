@@ -92,7 +92,7 @@ class LLMRayActor:
             self.actor_counter = 0
             self.requests = {}
 
-    def add_requests_vlm(self, actor_rank, *, sampling_params, vllm_vision_input):
+    def add_requests_vlm(self, actor_rank, *, sampling_params, vllm_vision_input,internvl=False):
         """
         Save the requests from actors and generate responses when all actors have sent their requests
         """
@@ -109,6 +109,21 @@ class LLMRayActor:
             if len(requests) > 0:
                 # For now we assume that all requests have the same sampling params
                 responses = self.llm.generate(requests, sampling_params=sampling_params)
+                if internvl:
+                    mm_inputs = [
+                        self.llm.llm_engine.input_processor(
+                            self.llm.llm_engine.input_preprocessor.preprocess(request, request_id="-1")
+                        )
+                        for request in requests
+                    ]
+                    responses = [
+                        {
+                            "response": response,
+                            "pixel_values": mm_input["mm_kwargs"]["pixel_values_flat"],
+                            "image_num_patches": mm_input["mm_kwargs"]["image_num_patches"].sum(),
+                        }
+                        for response, mm_input in zip(responses, mm_inputs)
+                    ]
             else:
                 responses = []
 

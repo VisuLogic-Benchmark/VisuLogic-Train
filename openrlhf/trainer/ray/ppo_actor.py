@@ -305,16 +305,19 @@ class ActorModelRayActor(BasePPORole):
             strategy.print(f"Froze {frozen_count}/{total_params} parameters based on prefixes: {strategy.args.freeze_prefix}")
 
         # configure tokenizer
-        if args.train_vlm and (not args.internvl):
+        if args.train_vlm and (args.input_key!="internvl"):
             self.processor = get_vl_processor(
                 pretrain, actor.model, "left", strategy, use_fast=not strategy.args.disable_fast_tokenizer
             )
             self.tokenizer = self.processor.tokenizer
-        elif args.internvl:
+        elif args.input_key=="internvl":
             self.processor = None
             self.tokenizer = get_tokenizer(
                 pretrain, actor.model, "left", strategy, use_fast=not strategy.args.disable_fast_tokenizer
             )
+            self.tokenizer.eos_token = "<|im_end|>"
+            self.tokenizer.eos_token_id = self.tokenizer.convert_tokens_to_ids("<|im_end|>")
+            #print("第六处padding side:", self.tokenizer.eos_token_id)
         else:
             self.processor = None
             self.tokenizer = get_tokenizer(

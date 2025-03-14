@@ -394,9 +394,6 @@ if __name__ == "__main__":
     # ModelScope parameters
     parser.add_argument("--use_ms", action="store_true", default=False)
 
-    # InternVL
-    parser.add_argument("--internvl", action="store_true", default=False)
-
     args = parser.parse_args()
 
     if args.advantage_estimator not in ["gae"]:

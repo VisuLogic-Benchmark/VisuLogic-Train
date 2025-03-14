@@ -587,7 +587,12 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
         )
         visual_inputs_cpu = None
         if visual_inputs is not None:
-            visual_inputs_cpu = {k: v.to("cpu") for k, v in visual_inputs.items()}        
+            visual_inputs_cpu = {k: v.to("cpu") for k, v in visual_inputs.items()}
+        if hasattr(self.data_processor,"internvl"):
+            visual_inputs_cpu["image_flags"] = torch.tensor([1] * visual_inputs_cpu["pixel_values"].size(0), dtype=torch.long, device=sequences.device)
+            #del visual_inputs_cpu["image_num_patches"]
+            visual_inputs_cpu.pop("image_num_patches") 
+            visual_inputs_actor = {k: v.to(samples.attention_mask.device) for k, v in visual_inputs_cpu.items()}     
         # init log probs
         if self.initial_model is not None:
             base_action_log_probs_ref = self.initial_model.forward.remote(
@@ -644,7 +649,7 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
             ray.get([self.reward_model[0].empty_cache.remote()])
 
         # log probs
-        action_log_probs = self.actor(sequences, num_actions, attention_mask, packed_seq_lens=packed_seq_lens,visual_inputs=visual_inputs)
+        action_log_probs = self.actor(sequences, num_actions, attention_mask, packed_seq_lens=packed_seq_lens,visual_inputs=visual_inputs_actor)
         actor_value_rm_time = time.time() - start
 
         # wait initial/critic/reward model done
@@ -742,6 +747,7 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
             min_tokens=kwargs.get("min_new_tokens", 1),
             skip_special_tokens=kwargs.get("skip_special_tokens", False),
             include_stop_str_in_output=True,
+            stop_token_ids=[kwargs.get("eos_token_id", self.tokenizer.eos_token_id)]
         )
 
         # Expand prompt list based on the number of samples per prompt
@@ -757,6 +763,25 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                 refs.append(
                     llm.add_requests.remote(rank, sampling_params=sampling_params, prompt_token_ids=prompt_token_ids)
                 )
+        elif hasattr(self.data_processor,"internvl"):
+            for i, llm in enumerate(llms):
+                messages = all_prompts[i * batch_size : (i + 1) * batch_size]
+                #print(f"message变量是：{messages}")
+                #print(f"message变量的类别是：{type(messages)}")
+                if messages:
+                    vllm_inputs = [
+                        {
+                            "prompt": self.data_processor.apply_chat_template(message, tokenize=False, add_generation_prompt=True),
+                            "multi_modal_data": {
+                                "image": self.data_processor.get_images_from_messages(message)
+                            },
+                        }
+                        for message in messages
+                    ]
+                    refs.append(
+                        llm.add_requests_vlm.remote(rank, sampling_params=sampling_params, vllm_vision_input=vllm_inputs,internvl=True)
+                    )
+
         else:
             # For VLM
             for i, llm in enumerate(llms):
@@ -792,6 +817,12 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
         for i in range(0, len(all_outputs), args.micro_rollout_batch_size):
             outputs = all_outputs[i : i + self.strategy.args.micro_rollout_batch_size]
             prompts = all_prompts[i : i + self.strategy.args.micro_rollout_batch_size]
+            if hasattr(self.data_processor,"internvl"):
+                for output in outputs:
+                    image_num_patches = output["image_num_patches"].tolist()
+                    output["image_num_patches"] = (
+                        image_num_patches if isinstance(image_num_patches, list) else [image_num_patches]
+                    )
             if not self.packing_samples:
                 # NOTE: concat all outputs to following format:
                 #
@@ -799,53 +830,122 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                 # | token token token token token | token token [EOS] [PAD] |
                 # | [PAD] [PAD] [PAD] token token | token token token [EOS] |
                 # |<---------- prompt ----------->|<-------- answer ------->|
-                max_input_len, max_output_len = 0, 0
-                for output in outputs:
-                    max_input_len = max(max_input_len, len(output.prompt_token_ids))
-                    max_output_len = max(max_output_len, len(output.outputs[0].token_ids))
+                if hasattr(self.data_processor,"internvl"):
+                    max_input_len, max_output_len, max_image_num_patches_len = 0, 0, 0
+                    for output in outputs:
+                        max_input_len = max(max_input_len, len(output["response"].prompt_token_ids))
+                        max_output_len = max(max_output_len, len(output["response"].outputs[0].token_ids))
+                        max_image_num_patches_len = max(max_image_num_patches_len, len(output["image_num_patches"]))
+                    # max_input_len += 1
+                    # max_output_len += 1
+                    # max_image_num_patches_len += 1
+                    pad_token_id, eos_token_id = self.tokenizer.pad_token_id, self.tokenizer.eos_token_id
+                    pad_token_id = self.tokenizer.eos_token_id
+                    sequences = []
+                    pixel_values = []
+                    image_num_patches = []
+                    for output in outputs:
+                        # left padding input
+                        input_len = len(output["response"].prompt_token_ids)
+                        input_ids = [pad_token_id] * (max_input_len - input_len) + list(
+                            output["response"].prompt_token_ids
+                        )
 
-                pad_token_id, eos_token_id = self.tokenizer.pad_token_id, self.tokenizer.eos_token_id
-                sequences = []
-                for output in outputs:
-                    # left padding input
-                    input_len = len(output.prompt_token_ids)
-                    input_ids = [pad_token_id] * (max_input_len - input_len) + list(output.prompt_token_ids)
+                        # right padding output
+                        output_len = len(output["response"].outputs[0].token_ids)
+                        output_ids = list(output["response"].outputs[0].token_ids) + [pad_token_id] * (
+                            max_output_len - output_len
+                        )
+                        print("pad_token_id是",pad_token_id)
+                        print("max_input_len - input_len是",max_input_len - input_len)
+                        print("prompt_token_ids是",list(output["response"].prompt_token_ids))
+                        print("input_ids 是",input_ids)
+                        print("output_ids是",output_ids)
+                        # left padding image_num_patches
+                        image_num_patches_len = len(output["image_num_patches"])
+                        num_tiles = [0] * (max_image_num_patches_len - image_num_patches_len) + output["image_num_patches"]
 
-                    # right padding output
-                    output_len = len(output.outputs[0].token_ids)
-                    output_ids = list(output.outputs[0].token_ids) + [pad_token_id] * (max_output_len - output_len)
-
-                    # concat input and output
-                    sequences.append(input_ids + output_ids)
-
-                sequences = torch.tensor(sequences)
-                sequences, attention_mask, action_mask = self.actor.process_sequences(
-                    sequences, max_input_len, eos_token_id, pad_token_id
-                )
-                sequences = sequences.to("cuda")
-                attention_mask = attention_mask.to("cuda")
-                action_mask = action_mask.to("cuda")
-                # Collect for visual input
-                visual_inputs = None
-                if self.data_processor is not None:
-                    visual_inputs = self.data_processor(prompts, self.prompt_max_len, device="cuda")
-                    visual_inputs.pop("input_ids")
-                    visual_inputs.pop("attention_mask")
-                    visual_inputs = {k: v.to("cuda") for k, v in visual_inputs.items()}
-
-                samples_list.append(
-                    Samples(
-                        sequences=sequences,
-                        attention_mask=attention_mask,
-                        action_mask=action_mask,
-                        num_actions=action_mask.size(1),
-                        packed_seq_lens=None,
-                        response_length=action_mask.float().sum(dim=-1),
-                        total_length=attention_mask.float().sum(dim=-1),
-                        prompts=prompts,
-                        visual_inputs=visual_inputs,
+                        # concat input and output
+                        sequences.append(input_ids + output_ids)
+                        pixel_values.append(output["pixel_values"])
+                        image_num_patches.append(num_tiles)
+                    sequences = torch.tensor(sequences)
+                    pixel_values = torch.cat(pixel_values, dim=0).to(torch.bfloat16)
+                    image_num_patches = torch.tensor(image_num_patches, dtype=torch.long)
+                    sequences, attention_mask, action_mask = self.actor.process_sequences(
+                        sequences, max_input_len, eos_token_id, pad_token_id
                     )
-                )
+                    sequences = sequences.to("cuda")
+                    attention_mask = attention_mask.to("cuda")
+                    action_mask = action_mask.to("cuda")
+                    pixel_values = pixel_values.to("cuda")
+                    image_num_patches = image_num_patches.to("cuda")
+                    visual_inputs={
+                        "pixel_values":pixel_values,
+                        "image_num_patches":image_num_patches
+                    }
+                    sample_prompts = [str(prompt) for prompt in prompts]
+                    samples_list.append(
+                        Samples(
+                            sequences=sequences,
+                            attention_mask=attention_mask,
+                            action_mask=action_mask,
+                            num_actions=action_mask.size(1),
+                            packed_seq_lens=None,
+                            response_length=action_mask.float().sum(dim=-1),
+                            total_length=attention_mask.float().sum(dim=-1),
+                            prompts=sample_prompts,
+                            visual_inputs=visual_inputs,
+                        )
+                    )
+                else:
+                    max_input_len, max_output_len = 0, 0
+                    for output in outputs:
+                        max_input_len = max(max_input_len, len(output.prompt_token_ids))
+                        max_output_len = max(max_output_len, len(output.outputs[0].token_ids))
+
+                    pad_token_id, eos_token_id = self.tokenizer.pad_token_id, self.tokenizer.eos_token_id
+                    sequences = []
+                    for output in outputs:
+                        # left padding input
+                        input_len = len(output.prompt_token_ids)
+                        input_ids = [pad_token_id] * (max_input_len - input_len) + list(output.prompt_token_ids)
+
+                        # right padding output
+                        output_len = len(output.outputs[0].token_ids)
+                        output_ids = list(output.outputs[0].token_ids) + [pad_token_id] * (max_output_len - output_len)
+
+                        # concat input and output
+                        sequences.append(input_ids + output_ids)
+
+                    sequences = torch.tensor(sequences)
+                    sequences, attention_mask, action_mask = self.actor.process_sequences(
+                        sequences, max_input_len, eos_token_id, pad_token_id
+                    )
+                    sequences = sequences.to("cuda")
+                    attention_mask = attention_mask.to("cuda")
+                    action_mask = action_mask.to("cuda")
+                    # Collect for visual input
+                    visual_inputs = None
+                    if self.data_processor is not None:
+                        visual_inputs = self.data_processor(prompts, self.prompt_max_len, device="cuda")
+                        visual_inputs.pop("input_ids")
+                        visual_inputs.pop("attention_mask")
+                        visual_inputs = {k: v.to("cuda") for k, v in visual_inputs.items()}
+
+                    samples_list.append(
+                        Samples(
+                            sequences=sequences,
+                            attention_mask=attention_mask,
+                            action_mask=action_mask,
+                            num_actions=action_mask.size(1),
+                            packed_seq_lens=None,
+                            response_length=action_mask.float().sum(dim=-1),
+                            total_length=attention_mask.float().sum(dim=-1),
+                            prompts=prompts,
+                            visual_inputs=visual_inputs,
+                        )
+                    )
             else:
                 # NOTE: concat all outputs to following format:
                 #

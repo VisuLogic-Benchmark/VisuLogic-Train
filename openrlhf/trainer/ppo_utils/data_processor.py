@@ -235,7 +235,6 @@ class InternVLDataProcessor(BaseDataProcessor):
             self.tknz.__class__.eos_token_id = property(eos_token_id_patch)
         self.tknz.eos_token = "<|im_end|>"
         self.tknz.eos_token_id = self.tknz.convert_tokens_to_ids("<|im_end|>")
-        #print("第二处padding side:",self.tknz.eos_token_id)
         self.connector = MediaConnector(allowed_local_media_path="/")
         self.internvl = True
     def __call__(

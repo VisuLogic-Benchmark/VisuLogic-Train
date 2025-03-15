@@ -90,9 +90,7 @@ class Actor(nn.Module):
                 )
                 tokenizer = AutoTokenizer.from_pretrained(pretrain_or_model, trust_remote_code=True)
                 tokenizer.padding_side = "left"
-                # tokenizer.eos_token = "<|im_end|>"
-                # tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("<|im_end|>")
-                # print("第一处tokenizer.eos_token_id",tokenizer.eos_token_id)
+
                 self.model.img_context_token_id = tokenizer.convert_tokens_to_ids(IMG_CONTEXT_TOKEN)
             else:
                 model_cls = get_generation_cls(config)

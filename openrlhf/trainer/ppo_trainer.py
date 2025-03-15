@@ -112,9 +112,7 @@ class PPOTrainer(ABC):
         elif self.args.input_key=="internvl":
             self.data_processor = DATA_PROCESSOR_MAP["InternVLProcessor"](processor)
             self.tokenizer = self.data_processor.tknz
-            # self.tokenizer.eos_token = "<|im_end|>"
-            # self.tokenizer.eos_token_id = self.tokenizer.convert_tokens_to_ids("<|im_end|>")
-            # print("第五处padding side:",self.tokenizer.eos_token_id)
+
         self.generate_kwargs = generate_kwargs
         self.dataloader_pin_memory = dataloader_pin_memory
         self.max_norm = max_norm

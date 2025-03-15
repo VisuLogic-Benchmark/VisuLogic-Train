@@ -317,7 +317,6 @@ class ActorModelRayActor(BasePPORole):
             )
             self.tokenizer.eos_token = "<|im_end|>"
             self.tokenizer.eos_token_id = self.tokenizer.convert_tokens_to_ids("<|im_end|>")
-            #print("第六处padding side:", self.tokenizer.eos_token_id)
         else:
             self.processor = None
             self.tokenizer = get_tokenizer(

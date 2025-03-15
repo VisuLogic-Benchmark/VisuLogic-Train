@@ -79,6 +79,7 @@ class Actor(nn.Module):
             if "internvl" in config.model_type:
                 self.is_internvl = True
                 #self.model = AutoModel.from_pretrained(
+                print("attn_implementation是",attn_implementation)
                 self.model = InternVLChatModel.from_pretrained(
                     pretrain_or_model,
                     trust_remote_code=True,
@@ -245,7 +246,8 @@ class Actor(nn.Module):
                 position_ids=position_ids,
                 image_flags=visual_inputs["image_flags"],
             )
-        output = self.model(sequences, attention_mask=attention_mask, position_ids=position_ids, **visual_inputs)
+        else:
+            output = self.model(sequences, attention_mask=attention_mask, position_ids=position_ids, **visual_inputs)
         # https://github.com/OpenRLHF/OpenRLHF/pull/634
         output["logits"] = output["logits"].to(torch.float32)
 

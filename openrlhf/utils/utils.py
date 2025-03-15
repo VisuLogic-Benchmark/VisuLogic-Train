@@ -28,10 +28,8 @@ def get_tokenizer(pretrain, model, padding_side="left", strategy=None, use_fast=
 
         tokenizer.__class__.eos_token_id = property(eos_token_id_patch)
     tokenizer.padding_side = padding_side
-    tokenizer.padding_side = "left"
-    # tokenizer.eos_token = "<|im_end|>"
-    # tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("<|im_end|>")
-    # print("第三处tokenizer.eos_token_id:",tokenizer.eos_token_id)
+    tokenizer.eos_token = "<|im_end|>"
+    tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("<|im_end|>")
     # NOTE: When enable vLLM, do not resize_token_embeddings, or the vocab size will mismatch with vLLM.
     # https://github.com/facebookresearch/llama-recipes/pull/196
     if tokenizer.pad_token is None:

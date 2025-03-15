@@ -284,9 +284,15 @@ class InternVLDataProcessor(BaseDataProcessor):
         pass
         
 
+try:
+    DATA_PROCESSOR_MAP = {
+        Qwen2VLProcessor: Qwen2VLDataProcessor,
+        Qwen2_5_VLProcessor: Qwen2VLDataProcessor,
+        "InternVLProcessor" : InternVLDataProcessor
+    }
+except:
+     DATA_PROCESSOR_MAP = {
+        Qwen2VLProcessor: Qwen2VLDataProcessor,
+        "InternVLProcessor" : InternVLDataProcessor
+    }
 
-DATA_PROCESSOR_MAP = {
-    Qwen2VLProcessor: Qwen2VLDataProcessor,
-    Qwen2_5_VLProcessor: Qwen2VLDataProcessor,
-    "InternVLProcessor" : InternVLDataProcessor
-}

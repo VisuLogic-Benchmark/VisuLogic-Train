@@ -840,7 +840,6 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                     # max_output_len += 1
                     # max_image_num_patches_len += 1
                     pad_token_id, eos_token_id = self.tokenizer.pad_token_id, self.tokenizer.eos_token_id
-                    pad_token_id = self.tokenizer.eos_token_id
                     sequences = []
                     pixel_values = []
                     image_num_patches = []
@@ -856,11 +855,6 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                         output_ids = list(output["response"].outputs[0].token_ids) + [pad_token_id] * (
                             max_output_len - output_len
                         )
-                        print("pad_token_id是",pad_token_id)
-                        print("max_input_len - input_len是",max_input_len - input_len)
-                        print("prompt_token_ids是",list(output["response"].prompt_token_ids))
-                        print("input_ids 是",input_ids)
-                        print("output_ids是",output_ids)
                         # left padding image_num_patches
                         image_num_patches_len = len(output["image_num_patches"])
                         num_tiles = [0] * (max_image_num_patches_len - image_num_patches_len) + output["image_num_patches"]

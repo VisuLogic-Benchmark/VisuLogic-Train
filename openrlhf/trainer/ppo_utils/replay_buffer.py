@@ -73,7 +73,7 @@ def split_experience_batch(experience: Experience, data_processor: Optional[Base
         start = 0
         end = 0
         for i in range(batch_size):
-            end = start + visual_inputs_batch[i]["image_num_patches"].sum().item()
+            end = start + visual_inputs_batch["image_num_patches"][i].sum().item()
             batch_kwargs[i]["visual_inputs"] = {}
             batch_kwargs[i]["visual_inputs"]["pixel_values"] = visual_inputs_batch["pixel_values"][start:end]
             start = end

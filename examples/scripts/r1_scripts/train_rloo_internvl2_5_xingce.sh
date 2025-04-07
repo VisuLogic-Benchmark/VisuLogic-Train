@@ -2,7 +2,7 @@ export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/dataset/xin
 #export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/examples/data/test_message_wo_image_multi.jsonl"
 #MODEL_CPK_NAME="qwenvl25_7B_rej_sample_ins_rloo_xingcev1_lr1e-5"
 MODEL_CPK_NAME="debug_internvl2_5"
-PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/hf_home/InternVL2_5-4B"
+PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/hf_home/InternVL2_5-38B"
 #PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/qwen25_7b_sampled_sft_1k_v1"
 SAVE_PATH="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/debug"
 mkdir -p "${SAVE_PATH}/"

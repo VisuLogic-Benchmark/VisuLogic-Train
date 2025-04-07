@@ -15,7 +15,7 @@ except Exception as e:
 from vllm.multimodal.utils import MediaConnector
 
 
-internvl_path = '/mnt/afs/wangjiahao/workspace/hf_home/InternVL2_5-4B'
+internvl_path = '/mnt/afs/wangjiahao/workspace/hf_home/InternVL2_5-38B'
 
 class BaseDataProcessor(ABC):
     def __init__(self, processor: ProcessorMixin):

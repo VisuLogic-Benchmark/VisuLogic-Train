@@ -153,10 +153,6 @@ ckpts
 data
 workspace
 debug.sh
-examples/data/test_message_wo_image_multi.jsonl
-examples/data/test_message_multi.jsonl
-examples/data/test_message_wo_image.jsonl
-*__pycache__*
-examples/scripts/r1_scripts/lp_scripts
-examples/scripts/r1_scripts
-openrlhf/internvl
+examples/scripts/r1_scripts*
+openrlhf/internvl*
+examples/data*

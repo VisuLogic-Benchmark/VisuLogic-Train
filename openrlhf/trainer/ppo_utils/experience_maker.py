@@ -593,6 +593,8 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
             #del visual_inputs_cpu["image_num_patches"]
             visual_inputs_cpu.pop("image_num_patches") 
             visual_inputs_actor = {k: v.to(samples.attention_mask.device) for k, v in visual_inputs_cpu.items()}     
+        else:
+            visual_inputs_actor = visual_inputs
         # init log probs
         if self.initial_model is not None:
             base_action_log_probs_ref = self.initial_model.forward.remote(

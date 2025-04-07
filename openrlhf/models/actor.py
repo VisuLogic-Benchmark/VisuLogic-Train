@@ -93,6 +93,7 @@ class Actor(nn.Module):
 
                 self.model.img_context_token_id = tokenizer.convert_tokens_to_ids(IMG_CONTEXT_TOKEN)
             else:
+                self.is_internvl = False
                 model_cls = get_generation_cls(config)
                 self.model = model_cls.from_pretrained(
                     pretrain_or_model,

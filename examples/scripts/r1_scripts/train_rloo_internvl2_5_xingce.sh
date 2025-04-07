@@ -4,13 +4,13 @@ export DATASET="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/dataset/xin
 MODEL_CPK_NAME="debug_internvl2_5"
 PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/hf_home/InternVL2_5-4B"
 #PRETRAIN_MODEL="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/qwen25_7b_sampled_sft_1k_v1"
-SAVE_PATH="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace"
-mkdir -p "${SAVE_PATH}/${MODEL_CPK_NAME}"
-mkdir -p "${SAVE_PATH}/${MODEL_CPK_NAME}/logs"
+SAVE_PATH="/mnt/afs/wangjiahao/workspace/o1_r1/lmm-r1/workspace/debug"
+mkdir -p "${SAVE_PATH}/"
+mkdir -p "${SAVE_PATH}/logs"
 T=`date +%Y%m%d_%H%M%S`
-LOG_PATH="${SAVE_PATH}/${MODEL_CPK_NAME}/logs/${MODEL_CPK_NAME}_${T}.log"
+LOG_PATH="${SAVE_PATH}/logs/${MODEL_CPK_NAME}_${T}.log"
 ray stop
-python -m openrlhf.models.remote_rm.option_verifier_internvl --dataset $DATASET --input_key internvl --prompt-template chatml > "${SAVE_PATH}/${MODEL_CPK_NAME}/logs/remote_rm_${T}.log" 2>&1 &
+python -m openrlhf.models.remote_rm.option_verifier_internvl --dataset $DATASET --input_key internvl --prompt-template chatml > "${SAVE_PATH}/logs/remote_rm_${T}.log" 2>&1 &
 childpid=$!
 
 ray start --head --node-ip-address 0.0.0.0 --num-gpus 8 --temp-dir ~/.cache/ray

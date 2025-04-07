@@ -78,9 +78,9 @@ class Actor(nn.Module):
             config = AutoConfig.from_pretrained(pretrain_or_model,trust_remote_code=True)
             if "internvl" in config.model_type:
                 self.is_internvl = True
-                #self.model = AutoModel.from_pretrained(
+                #self.model = InternVLChatModel.from_pretrained(
                 print("attn_implementation是",attn_implementation)
-                self.model = InternVLChatModel.from_pretrained(
+                self.model = AutoModel.from_pretrained(
                     pretrain_or_model,
                     trust_remote_code=True,
                     attn_implementation=attn_implementation,

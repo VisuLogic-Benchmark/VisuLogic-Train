@@ -106,11 +106,11 @@ class PPOTrainer(ABC):
         self.processor = processor
         self.data_processor = None
         # for vlm critic model, not provice processor.
-        if self.args.train_vlm and processor is not None:
+        if self.args.train_vlm and processor is not None and self.args.model_family=="qwen":
             self.data_processor = DATA_PROCESSOR_MAP[type(processor)](processor)
             self.tokenizer = self.data_processor.tokenizer
-        elif self.args.input_key=="internvl":
-            self.data_processor = DATA_PROCESSOR_MAP["InternVLProcessor"](processor)
+        elif self.args.model_family=="internvl":
+            self.data_processor = DATA_PROCESSOR_MAP["InternVLProcessor"](processor,tokenizer)
             self.tokenizer = self.data_processor.tknz
 
         self.generate_kwargs = generate_kwargs
@@ -368,8 +368,8 @@ class PPOTrainer(ABC):
             packed_seq_lens = None
             attention_mask = experience.attention_mask
             visual_inputs = experience.visual_inputs
-        if hasattr(self.actor,"is_internvl"):
-            visual_inputs["image_flags"] = torch.tensor([1] * visual_inputs["pixel_values"].size(0), dtype=torch.long, device=sequences.device)
+        # if self.args.model_family=="internvl":
+        #     visual_inputs["image_flags"] = torch.tensor([1] * visual_inputs["pixel_values"].size(0), dtype=torch.long, device=sequences.device)
             #del visual_inputs["image_num_patches"] 
             # visual_inputs.pop("image_num_patches")
         # actor loss

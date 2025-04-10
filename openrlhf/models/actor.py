@@ -78,8 +78,6 @@ class Actor(nn.Module):
             config = AutoConfig.from_pretrained(pretrain_or_model,trust_remote_code=True)
             if "internvl" in config.model_type:
                 self.is_internvl = True
-                #self.model = InternVLChatModel.from_pretrained(
-                print("attn_implementation是",attn_implementation)
                 self.model = AutoModel.from_pretrained(
                     pretrain_or_model,
                     trust_remote_code=True,
@@ -93,7 +91,6 @@ class Actor(nn.Module):
 
                 self.model.img_context_token_id = tokenizer.convert_tokens_to_ids(IMG_CONTEXT_TOKEN)
             else:
-                #self.is_internvl = False
                 model_cls = get_generation_cls(config)
                 self.model = model_cls.from_pretrained(
                     pretrain_or_model,
@@ -237,8 +234,12 @@ class Actor(nn.Module):
                 position_ids = reset_position_ids(attention_mask)
             # explicitly ignore attention_mask for packing_samples
             attention_mask = None
-        #if self.is_internvl:
         if hasattr(self,"is_internvl"):
+        #if "image_flags" in visual_inputs:
+            visual_inputs["image_flags"] = torch.tensor([1] * visual_inputs["pixel_values"].size(0), dtype=torch.long, device=sequences.device)
+            #del visual_inputs_cpu["image_num_patches"]
+            #visual_inputs.pop("image_num_patches") 
+            visual_inputs = {k: v.to(attention_mask.device) for k, v in visual_inputs.items()}     
             output = self.model(
                 pixel_values=visual_inputs["pixel_values"],
                 input_ids=sequences,

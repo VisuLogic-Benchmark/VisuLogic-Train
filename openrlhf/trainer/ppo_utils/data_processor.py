@@ -1,7 +1,7 @@
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import List, Optional, Union, Dict
+from typing import List, Optional, Union, Dict, Tuple
 
 import torch
 from qwen_vl_utils import process_vision_info
@@ -15,7 +15,7 @@ except Exception as e:
 from vllm.multimodal.utils import MediaConnector
 
 
-internvl_path = '/mnt/afs/wangjiahao/workspace/hf_home/InternVL2_5-38B'
+#internvl_path = '/mnt/afs/wangjiahao/workspace/hf_home/InternVL2_5-38B'
 
 class BaseDataProcessor(ABC):
     def __init__(self, processor: ProcessorMixin):
@@ -222,10 +222,11 @@ class Qwen2VLDataProcessor(BaseDataProcessor):
 
 
 class InternVLDataProcessor(BaseDataProcessor):
-    def __init__(self, processor: ProcessorMixin):
+    def __init__(self, processor: ProcessorMixin,tknz):
         super().__init__(processor)
 
-        self.tknz = AutoTokenizer.from_pretrained(internvl_path, trust_remote_code=True, use_fast=False)
+        #self.tknz = AutoTokenizer.from_pretrained(internvl_path, trust_remote_code=True, use_fast=False)
+        self.tknz = tknz
         self.tknz.padding_side = "left"
         if self.tknz.__class__.__name__ == "InternLM2Tokenizer":
 
@@ -242,6 +243,40 @@ class InternVLDataProcessor(BaseDataProcessor):
     ) -> Dict:
         pass
     
+    def count_image_tags(self,data: List[Dict]) -> int:
+        count = 0
+        for entry in data:
+            if isinstance(entry.get('content'), str):
+                count += entry['content'].count('<image>\n')
+        return count
+
+    def extract_images_and_filter_content(self,data: List[Dict]) -> Tuple[List[str], List[Dict]]:
+        extracted_images = []
+        processed_data = []
+        
+        for message in data:
+            new_message = {
+                'role': message['role'],
+            }
+            if type(message['content']) == str:
+                new_message['content']= message['content']
+                processed_data.append(new_message)
+            else:
+                for content_item in message['content']:
+                    if content_item['type'] == 'image':
+                        extracted_images.append(content_item['image'])
+                    elif content_item['type'] == 'text':
+                        new_message['content']= content_item.copy()["text"]
+                    else:
+                        raise ValueError("Only support image and text inputs!")
+            
+                processed_data.append(new_message)
+        
+        assert self.count_image_tags(processed_data) == len(extracted_images), "The number of '<image>\\n' should be equal to the number of images!"
+        
+        return extracted_images, processed_data
+        
+
     def _format_messages(self, messages) -> List[Dict]:
         if isinstance(messages, str):
             return json.loads(messages)
@@ -255,15 +290,15 @@ class InternVLDataProcessor(BaseDataProcessor):
         add_generation_prompt: bool = True,
     ) -> List[str]:
         messages = self._format_messages(messages)
-        
+        images,messages = self.extract_images_and_filter_content(messages)
         return self.tknz.apply_chat_template(
-            messages["conversations"], tokenize=tokenize, add_generation_prompt=add_generation_prompt
+            messages, tokenize=tokenize, add_generation_prompt=add_generation_prompt
         )
 
     def get_images_from_messages(self,messages):
         messages = self._format_messages(messages)
-
-        return [self.connector.fetch_image(image_url) for image_url in messages["image_urls"]]
+        images,messages = self.extract_images_and_filter_content(messages)
+        return [self.connector.fetch_image(f"file://{image_url}") for image_url in images]
 
     def _get_images_from_messages(self):
         pass

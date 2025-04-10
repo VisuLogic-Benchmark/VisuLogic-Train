@@ -588,13 +588,13 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
         visual_inputs_cpu = None
         if visual_inputs is not None:
             visual_inputs_cpu = {k: v.to("cpu") for k, v in visual_inputs.items()}
-        if hasattr(self.data_processor,"internvl"):
-            visual_inputs_cpu["image_flags"] = torch.tensor([1] * visual_inputs_cpu["pixel_values"].size(0), dtype=torch.long, device=sequences.device)
-            #del visual_inputs_cpu["image_num_patches"]
-            visual_inputs_cpu.pop("image_num_patches") 
-            visual_inputs_actor = {k: v.to(samples.attention_mask.device) for k, v in visual_inputs_cpu.items()}     
-        else:
-            visual_inputs_actor = visual_inputs
+        # if hasattr(self.data_processor,"internvl"):
+        #     visual_inputs_cpu["image_flags"] = torch.tensor([1] * visual_inputs_cpu["pixel_values"].size(0), dtype=torch.long, device=sequences.device)
+        #     #del visual_inputs_cpu["image_num_patches"]
+        #     visual_inputs_cpu.pop("image_num_patches") 
+        #     visual_inputs_actor = {k: v.to(samples.attention_mask.device) for k, v in visual_inputs_cpu.items()}     
+        # else:
+        #     visual_inputs_actor = visual_inputs
         # init log probs
         if self.initial_model is not None:
             base_action_log_probs_ref = self.initial_model.forward.remote(
@@ -651,7 +651,7 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
             ray.get([self.reward_model[0].empty_cache.remote()])
 
         # log probs
-        action_log_probs = self.actor(sequences, num_actions, attention_mask, packed_seq_lens=packed_seq_lens,visual_inputs=visual_inputs_actor)
+        action_log_probs = self.actor(sequences, num_actions, attention_mask, packed_seq_lens=packed_seq_lens,visual_inputs=visual_inputs)
         actor_value_rm_time = time.time() - start
 
         # wait initial/critic/reward model done
@@ -768,8 +768,6 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
         elif hasattr(self.data_processor,"internvl"):
             for i, llm in enumerate(llms):
                 messages = all_prompts[i * batch_size : (i + 1) * batch_size]
-                #print(f"message变量是：{messages}")
-                #print(f"message变量的类别是：{type(messages)}")
                 if messages:
                     vllm_inputs = [
                         {
@@ -838,9 +836,6 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                         max_input_len = max(max_input_len, len(output["response"].prompt_token_ids))
                         max_output_len = max(max_output_len, len(output["response"].outputs[0].token_ids))
                         max_image_num_patches_len = max(max_image_num_patches_len, len(output["image_num_patches"]))
-                    # max_input_len += 1
-                    # max_output_len += 1
-                    # max_image_num_patches_len += 1
                     pad_token_id, eos_token_id = self.tokenizer.pad_token_id, self.tokenizer.eos_token_id
                     sequences = []
                     pixel_values = []

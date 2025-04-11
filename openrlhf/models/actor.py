@@ -12,7 +12,6 @@ from .ring_attn_utils import convert_ring_attn_params
 from .utils import log_probs_from_logits, reset_position_ids
 from ..utils.utils import get_generation_cls
 
-#from openrlhf.internvl import InternVLChatModel
 
 IMG_CONTEXT_TOKEN = "<IMG_CONTEXT>"
 

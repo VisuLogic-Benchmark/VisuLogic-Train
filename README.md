@@ -2,10 +2,9 @@
 
 **A Chanllenging Visual-centric Benchmark for Evaluating Multimodal Reasoning in MLLMs!**
 
-This repo is a fork of [**lmm-r1**](https://github.com/TideDra/lmm-r1)
+This the RL training codes repo of [VisuLogic](https://visulogic-benchmark.github.io/VisuLogic). This repo is a fork of [**lmm-r1**](https://github.com/TideDra/lmm-r1).
 
-
-Paper, training datasetsand model checkpoints are coming!
+Paper, training datasets and model checkpoints are coming!
 
 For more details, please refer to the project page with dataset exploration and visualization tools: [https://visulogic-benchmark.github.io/VisuLogic/](https://visulogic-benchmark.github.io/VisuLogic/).
 
@@ -14,13 +13,12 @@ For more details, please refer to the project page with dataset exploration and 
 [**🌐 Homepage**](https://visulogic-benchmark.github.io/VisuLogic) | [**🏆 Leaderboard**(coming soon)](https://visulogic-benchmark.github.io/VisuLogic/) |
 
 
-
 ## 🔔News
 
 - **🔥[2025-04-08] Release the benchmark and the codes! 🚀**
 ## To-do
 - [x] Release the benchmark dataset and eval codes
-- [ ] Release training codes
+- [x] Release training codes
 - [ ] Release the paper
 - [ ] Release the training dataset
 - [ ] Release model ckpts

@@ -100,7 +100,18 @@ To ensure compatibility with our codebase, multimodal prompt datasets must be fo
 
 ### Start training
 
-Our codes support QwenVL and InternVL series models. 
+Our codebase supports the QwenVL​​ and ​​InternVL​​ series of MLLMs and we provide Slurm job script examples.
+- Train on Qwen2.5-VL-7B-Instruct
+```bash
+# Hardware Requirements: 8×80GB GPUs (e.g. A100/A800)
+bash examples/visulogic/srun_qwen2_5vl7b.sh
+```
+
+- Train on InternVL2_5-38B
+```bash
+# Hardware Requirements: 48×80GB GPUs (e.g. A100/H100)
+bash examples/visulogic/srun_qwen2_5vl7b.sh
+```
 
 ## Contact
 - Jiahao Wang: wjhwdscience@stu.xjtu.edu.cn

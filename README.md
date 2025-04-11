@@ -96,7 +96,7 @@ To ensure compatibility with our codebase, multimodal prompt datasets must be fo
 - ​**​Multimodal Handling​**​:  
   - ​**​Do not​**​ enable `--apply_chat_template` for multimodal prompts—message parsing and image token insertion are handled internally by the framework.
 
-### Start training
+### ⚙️Start training
 
 Our codebase supports the QwenVL​​ and ​​InternVL​​ series of MLLMs and we provide Slurm job script examples.
 - Train on Qwen2.5-VL-7B-Instruct

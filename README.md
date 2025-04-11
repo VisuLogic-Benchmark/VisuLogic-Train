@@ -2,7 +2,7 @@
 
 **A Chanllenging Visual-centric Benchmark for Evaluating Multimodal Reasoning in MLLMs!**
 
-This repo is a fork of [lmm-r1](https://github.com/TideDra/lmm-r1)
+This repo is a fork of [**lmm-r1**](https://github.com/TideDra/lmm-r1)
 
 
 Paper, training datasetsand model checkpoints are coming!
@@ -50,23 +50,57 @@ For more detailed information, please refer to our Hugging Face datasets:
 - [**🤗 VisuLogic Dataset**](https://huggingface.co/datasets/VisuLogic/VisuLogic)
 
 ## Evaluation
-Firstly you should clone our repo and prepare the packages
+Please refer to [VisuLogic-Eval](https://github.com/VisuLogic-Benchmark/VisuLogic-Eval.git) for evaluation codes.
 
+## Training
+### 📦Installation
 ```bash
-# Clone repository
-git clone https://github.com/VisuLogic-Benchmark/VisuLogic-Eval.git
-
-# Install dependencies
-pip install -r requirements.txt
+git clone https://github.com/VisuLogic-Benchmark/VisuLogic-Train.git
+cd VisuLogic-Train
+pip install -e .[vllm]
+pip install flash_attn --no-build-isolation
 ```
-
-Navigate to the `scripts` directory containing preconfigured evaluation pipelines. Run the corresponding evaluation script with specific parameters. For Qwen2.5-VL-Instruct:
-```bash
-# Run evaluation for specific model (e.g. Qwen2.5-VL-Instruct)
-cd scripts
-bash eval_qwen2.5vl_7b_multi.sh 
+### 📊Prepare dataset
+#### Dataset Access
+We publicly release the ​​VisuLogic Training Dataset​​, a curated collection derived from the same underlying benchmark sources used in our experiments. Please refer to [**🤗 VisuLogic Dataset**](https://huggingface.co/datasets/VisuLogic/VisuLogic) and download our datasets.
+#### Preparing Your Custom Dataset
+To ensure compatibility with our codebase, multimodal prompt datasets must be formatted in OpenAI-compatible message structures. We recommend organizing your data as a JSON Lines (JSONL) file with the .jsonl extension.
+```json
+[
+  {
+    "message":"[
+      {
+        \"role\": \"user\",
+        \"content\": [
+            { \
+                \"type\": \"image\",
+                \"image\": \"file:///path/to/your/image.jpg\",
+            }, \
+            {\"type\": \"text\", \"text\": \"<image>\\nHow many cats in the image?\"},
+        ],
+      }
+    ]",
+    "answer": "$3$"
+  },
+]
 ```
+**Attention**
+- ​**​Message Format​**​:  
+  Ensure the `messages` field is a ​**​stringified​**​ list (e.g., `"[{\"role\": \"user\", \"content\": ...}]"`).
 
+- ​**​Image-Tag Alignment​**​:  
+  When training InternVL models, the number of `<image>\n` tags in the input text ​**​must exactly match​**​ the number of images provided in the message.
+
+- ​**​Parameter Usage​**​:  
+  - Use `--input_key {key_name}` to specify the JSON key containing the input data.  
+  - For PPO training, provide data via `--prompt_data {name/path}`; for general training, use `--dataset {name/path}`.
+
+- ​**​Multimodal Handling​**​:  
+  - ​**​Do not​**​ enable `--apply_chat_template` for multimodal prompts—message parsing and image token insertion are handled internally by the framework.
+
+### Start training
+
+Our codes support QwenVL and InternVL series models. 
 
 ## Contact
 - Jiahao Wang: wjhwdscience@stu.xjtu.edu.cn

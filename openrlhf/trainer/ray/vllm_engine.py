@@ -109,12 +109,6 @@ class LLMRayActor:
             if len(requests) > 0:
                 # For now we assume that all requests have the same sampling params
                 raw_responses = self.llm.generate(requests, sampling_params=sampling_params)
-                # responses = [
-                #         {
-                #             "response": response
-                #         }
-                #         for response in raw_responses
-                #     ]
                 if internvl:
                     mm_inputs = [
                         self.llm.llm_engine.input_processor(

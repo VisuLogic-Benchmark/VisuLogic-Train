@@ -15,7 +15,6 @@ except Exception as e:
 from vllm.multimodal.utils import MediaConnector
 
 
-#internvl_path = '/mnt/afs/wangjiahao/workspace/hf_home/InternVL2_5-38B'
 
 class BaseDataProcessor(ABC):
     def __init__(self, processor: ProcessorMixin):
@@ -229,7 +228,6 @@ class InternVLDataProcessor(BaseDataProcessor):
     def __init__(self, processor: ProcessorMixin,tknz):
         super().__init__(processor)
 
-        #self.tknz = AutoTokenizer.from_pretrained(internvl_path, trust_remote_code=True, use_fast=False)
         self.tknz = tknz
         self.tknz.padding_side = "left"
         if self.tknz.__class__.__name__ == "InternLM2Tokenizer":
@@ -241,7 +239,6 @@ class InternVLDataProcessor(BaseDataProcessor):
         self.tknz.eos_token = "<|im_end|>"
         self.tknz.eos_token_id = self.tknz.convert_tokens_to_ids("<|im_end|>")
         self.connector = MediaConnector(allowed_local_media_path="/")
-        #self.internvl = True
         self.model_family = "internvl"
     def __call__(
         self,

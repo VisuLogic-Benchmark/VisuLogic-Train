@@ -7,7 +7,6 @@ flask
 isort
 jsonlines
 loralib
-math-verify
 levenshtein
 optimum
 packaging
@@ -16,10 +15,10 @@ pynvml>=12.0.0
 qwen_vl_utils
 ray[default]==2.42.0
 tensorboard
-torch
+torch==2.5.1
 torchmetrics
 tqdm
-transformers @ git+https://github.com/huggingface/transformers@main
+transformers @ git+https://github.com/huggingface/transformers.git@9985d06add07a4cc691dc54a7e34f54205c04d40
 transformers_stream_generator
 wandb
 wheel

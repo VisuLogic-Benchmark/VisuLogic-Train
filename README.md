@@ -1,6 +1,7 @@
 # VisuLogic: A Benchmark for Evaluating Visual Reasoning in Multi-modal Large Language Models
 
 **A Chanllenging Visual-centric Benchmark for Evaluating Multimodal Reasoning in MLLMs!**
+
 This repo is a fork of [lmm-r1](https://github.com/TideDra/lmm-r1)
 
 

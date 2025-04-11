@@ -61,14 +61,14 @@ def split_experience_batch(experience: Experience, data_processor: Optional[Base
         assert batch_size == len(vals)
         for i, v in enumerate(vals):
             batch_kwargs[i][key] = v
-    if data_processor is not None and not(hasattr(data_processor,"internvl")):
+    if data_processor is not None and data_processor.model_family == "qwen":
         visual_inputs_batch = experience.visual_inputs
         visual_inputs_batch['input_ids'] = experience.sequences
         visual_inputs_chunks = data_processor.split_input_batch(visual_inputs_batch)
         for i, visual_inputs in enumerate(visual_inputs_chunks):
             visual_inputs.pop('input_ids')
             batch_kwargs[i]["visual_inputs"] = visual_inputs
-    elif hasattr(data_processor,"internvl"):
+    elif data_processor.model_family == "internvl":
         visual_inputs_batch = experience.visual_inputs
         start = 0
         end = 0

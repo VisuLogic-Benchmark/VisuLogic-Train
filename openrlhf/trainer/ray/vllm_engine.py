@@ -108,7 +108,13 @@ class LLMRayActor:
 
             if len(requests) > 0:
                 # For now we assume that all requests have the same sampling params
-                responses = self.llm.generate(requests, sampling_params=sampling_params)
+                raw_responses = self.llm.generate(requests, sampling_params=sampling_params)
+                # responses = [
+                #         {
+                #             "response": response
+                #         }
+                #         for response in raw_responses
+                #     ]
                 if internvl:
                     mm_inputs = [
                         self.llm.llm_engine.input_processor(
@@ -122,7 +128,14 @@ class LLMRayActor:
                             "pixel_values": mm_input["mm_kwargs"]["pixel_values_flat"],
                             "image_num_patches": mm_input["mm_kwargs"]["image_num_patches"].sum(),
                         }
-                        for response, mm_input in zip(responses, mm_inputs)
+                        for response, mm_input in zip(raw_responses, mm_inputs)
+                    ]
+                else:
+                    responses = [
+                        {
+                            "response": response
+                        }
+                        for response in raw_responses
                     ]
             else:
                 responses = []

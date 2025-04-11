@@ -110,6 +110,10 @@ def add_pixel_bounds(messages):
 
 
 class Qwen2VLDataProcessor(BaseDataProcessor):
+    def __init__(self, processor: ProcessorMixin):
+        super().__init__(processor)
+
+        self.model_family = "qwen"
     def __call__(
         self,
         messages,
@@ -237,7 +241,8 @@ class InternVLDataProcessor(BaseDataProcessor):
         self.tknz.eos_token = "<|im_end|>"
         self.tknz.eos_token_id = self.tknz.convert_tokens_to_ids("<|im_end|>")
         self.connector = MediaConnector(allowed_local_media_path="/")
-        self.internvl = True
+        #self.internvl = True
+        self.model_family = "internvl"
     def __call__(
         self,
     ) -> Dict:

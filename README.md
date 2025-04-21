@@ -117,8 +117,9 @@ bash examples/visulogic/srun_qwen2_5vl7b.sh
 ```
 
 ## Contact
-- Jiahao Wang: wjhwdscience@stu.xjtu.edu.cn
 - Weiye Xu: ustcxwy0271@mail.ustc.edu.cn
+- Jiahao Wang: wjhwdscience@stu.xjtu.edu.cn
+
 
 ## Citation
 

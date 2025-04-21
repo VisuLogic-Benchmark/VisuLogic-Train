@@ -4,14 +4,13 @@
 
 This the RL training codes repo of [VisuLogic](https://visulogic-benchmark.github.io/VisuLogic). This repo is a fork of [**lmm-r1**](https://github.com/TideDra/lmm-r1).
 
-Paper, training datasets and model checkpoints are coming!
-
 For more details, please refer to the project page with dataset exploration and visualization tools: [https://visulogic-benchmark.github.io/VisuLogic/](https://visulogic-benchmark.github.io/VisuLogic/).
 
-# VisuLogic Benchmark
+# VisuLogic Resouces
 
-[**🌐 Homepage**](https://visulogic-benchmark.github.io/VisuLogic) | [**🏆 Leaderboard**(coming soon)](https://visulogic-benchmark.github.io/VisuLogic/) |
+[**🌐 Homepage**](https://visulogic-benchmark.github.io/VisuLogic) | [**🏆 Leaderboard**(coming soon)](https://visulogic-benchmark.github.io/VisuLogic/) | [**📖 Paper**](./assets/VisuLogic-paper.pdf) | [**🤗 Benchmark**](https://huggingface.co/datasets/VisuLogic/VisuLogic) | [**🤗 Train Data**](https://huggingface.co/datasets/VisuLogic/VisuLogic-Train) 
 
+[**💻 Eval Code**](https://huggingface.co/datasets/VisuLogic/VisuLogic) |  [**💻 Train Code**](https://github.com/VisuLogic-Benchmark/VisuLogic-Train) | [**🤗 Checkpoint (7B)**](https://huggingface.co/VisuLogic/qwen2_5vl_7b_rloo_80steps_hf) | [**🤗 Checkpoint (38B)**](https://huggingface.co/VisuLogic/internvl2_5_38b_rloo_100steps_hf)
 
 ## 🔔News
 
@@ -19,27 +18,33 @@ For more details, please refer to the project page with dataset exploration and 
 ## To-do
 - [x] Release the benchmark dataset and eval codes
 - [x] Release training codes
-- [ ] Release the paper
-- [ ] Release the training dataset
-- [ ] Release model ckpts
+- [x] Release the paper
+- [x] Release the training dataset
+- [x] Release model ckpts
 
-
+## 📖 Introduction
+VisuLogic is a newly designed benchmark aimed at evaluating the visual reasoning capabilities of Multi-modal Large Language Models (MLLMs), independent of textual reasoning processes. It features carefully constructed visual reasoning tasks spanning multiple categories, divided into six types based on required reasoning skills (e.g., Quantitative Reasoning, which involves understanding and deducing changes in the quantity of elements in images). Unlike existing benchmarks, VisuLogic is a challenging visual reasoning benchmark that is inherently difficult to articulate using language, providing a more rigorous evaluation of the visual reasoning capabilities of MLLMs. Most models score below 30\% accuracy—only slightly above the 25\% random baseline and far below the 51.4\% achieved by humans—revealing significant gaps in visual reasoning.
 ![Overview](assets/overview4.png)
 
 ## 🌟 Key Features
 
 - 🚀 **Visuo-Logical Challenge**  
-  The first benchmark to integrate **visual perception** with **logical reasoning**, enabling authentic multimodal evaluation.
+  The first benchmark to integrate **visual perception** with **logical reasoning**, enabling authentic multimodal evaluation. Most models score below **30%** accuracy—only slightly above the 25% random baseline and far below the 51.4% achieved by humans—revealing significant gaps in visual reasoning.
   
 - 🛠️ **Rigorous Design**  
-  Includes **1,000 meticulously curated questions**, spanning **6 domains** and **23 subcategories**, for comprehensive performance evaluation.
+  Includes **1,000 meticulously curated questions**, spanning **6 domains** and **24 subcategories**, for comprehensive performance evaluation.
   
 - 📝 **Anti-Linguistic Shortcut**  
-  Designed to avoid linguistic biases, ensuring tasks rely on **genuine visual reasoning** rather than shortcuts.
+  Designed to avoid linguistic reasoning, ensuring tasks rely on **genuine visual reasoning** rather than shortcuts.
 
-- 📊 **Human-Aligned Evaluation**  
-  - **Human Accuracy**: >50.0%  
-  - **State-of-the-Art (SOTA) MLLMs Accuracy**: <30%
+- 💡 **RL Exploration**  
+  We identify the  RL technique as a promising direction for improving the visual reasoning capabilities of MLLMs. Through RL method, models reach **SOTA** in VisuLogic!
+
+- ✅ **Fully Open-source**  
+  We **open-source** all the evaluation code, training scripts, and datasets associated with this work to promote further research and innovation.
+
+## 🖼️  Examples of VisuLogic
+![Examples of VisuLogic](assets/examples_in_benchmarks.png)
 
 ## Benchmark Data
 

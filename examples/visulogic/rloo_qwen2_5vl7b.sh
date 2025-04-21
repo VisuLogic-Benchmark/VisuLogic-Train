@@ -1,5 +1,5 @@
 NODE_RANK=${1:-0}
-export DATASET="visulogic_train.jsonl"
+export DATASET="visulogic_train_qwen.jsonl"
 PRETRAIN_MODEL="Qwen/Qwen2.5-VL-7B-Instruct"
 SAVE_PATH="log"
 mkdir -p "ckpt"

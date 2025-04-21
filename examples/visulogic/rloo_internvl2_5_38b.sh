@@ -1,5 +1,5 @@
 NODE_RANK=${1:-0}
-export DATASET="visulogic_train.jsonl"
+export DATASET="visulogic_train_internvl.jsonl"
 PRETRAIN_MODEL="OpenGVLab/InternVL2_5-38B"
 SAVE_PATH="log"
 mkdir -p "ckpt"

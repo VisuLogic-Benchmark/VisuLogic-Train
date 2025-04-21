@@ -46,11 +46,11 @@ VisuLogic is a newly designed benchmark aimed at evaluating the visual reasoning
 ## 🖼️  Examples of VisuLogic
 ![Examples of VisuLogic](assets/examples_in_benchmarks.png)
 
-## Benchmark Data
+## Training Data
 
 For more detailed information, please refer to our Hugging Face datasets:
 
-- [**🤗 VisuLogic Dataset**](https://huggingface.co/datasets/VisuLogic/VisuLogic)
+- [**🤗 Train Data**](https://huggingface.co/datasets/VisuLogic/VisuLogic-Train) 
 
 ## Evaluation
 Please refer to [VisuLogic-Eval](https://github.com/VisuLogic-Benchmark/VisuLogic-Eval.git) for evaluation codes.
@@ -132,3 +132,4 @@ bash examples/visulogic/srun_qwen2_5vl7b.sh
     note         = {Accessed: 2025-04-08}
 }
 ```
+🎉 Thank you for your interest in VisuLogic! We hope this benchmark helps drive advancements in multimodal visual reasoning! 🚀

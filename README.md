@@ -12,7 +12,7 @@ For more details, please refer to the project page with dataset exploration and 
 
 
 ## 🔔News
-
+- **🔥[2025-04-22] Release the paper, training data and training code! 🚀**
 - **🔥[2025-04-08] Release the benchmark and the codes! 🚀**
 ## To-do
 - [x] Release the benchmark dataset and eval codes

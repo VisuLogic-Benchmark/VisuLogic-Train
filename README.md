@@ -2,7 +2,7 @@
 
 **A Challenging Visual-centric Benchmark for Evaluating Multimodal Reasoning in MLLMs!**
 
-This the RL training codes repo of [VisuLogic](https://visulogic-benchmark.github.io/VisuLogic). This repo is a fork of [**lmm-r1**](https://github.com/TideDra/lmm-r1).
+This is the RL training code repo of [VisuLogic](https://visulogic-benchmark.github.io/VisuLogic). This repo is a fork of [**lmm-r1**](https://github.com/TideDra/lmm-r1).
 
 For more details, please refer to the project page with dataset exploration and visualization tools: [https://visulogic-benchmark.github.io/VisuLogic/](https://visulogic-benchmark.github.io/VisuLogic/).
 
@@ -13,10 +13,10 @@ For more details, please refer to the project page with dataset exploration and 
 
 ## 🔔News
 - **🔥[2025-04-22] Release the paper, training data and training code! 🚀**
-- **🔥[2025-04-08] Release the benchmark and the codes! 🚀**
+- **🔥[2025-04-08] Release the benchmark and the code! 🚀**
 ## To-do
-- [x] Release the benchmark dataset and eval codes
-- [x] Release training codes
+- [x] Release the benchmark dataset and eval code
+- [x] Release training code
 - [x] Release the paper
 - [x] Release the training dataset
 - [x] Release model ckpts
@@ -52,7 +52,7 @@ For more detailed information, please refer to our Hugging Face datasets:
 - [**🤗 Train Data**](https://huggingface.co/datasets/VisuLogic/VisuLogic-Train) 
 
 ## Evaluation
-Please refer to [VisuLogic-Eval](https://github.com/VisuLogic-Benchmark/VisuLogic-Eval.git) for evaluation codes.
+Please refer to [VisuLogic-Eval](https://github.com/VisuLogic-Benchmark/VisuLogic-Eval.git) for evaluation code.
 
 ## Training
 ### 📦Installation
